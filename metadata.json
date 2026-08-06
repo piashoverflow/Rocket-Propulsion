@@ -1,0 +1,6 @@
+{
+  "name": "Udvash Academic - Rocket Propulsion & Variable Mass Dynamics Lab",
+  "description": "Interactive rocket physics simulation for Tsiolkovsky rocket equation, variable mass dynamics, thrust calculation, and BUET/HSC exam problem inspector.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

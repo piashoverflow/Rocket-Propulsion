@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Udvash Academic - Rocket Propulsion & Variable Mass Dynamics Lab</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Courier New', 'monospace']
+          },
+          colors: {
+            space: {
+              bg: '#0F172A',
+              card: '#1E293B',
+              border: '#334155',
+              cyan: '#38BDF8',
+              green: '#34D399',
+              orange: '#FB923C',
+              red: '#F87171'
+            },
+            bright: {
+              bg: '#F1F5F9',
+              card: '#FFFFFF',
+              border: '#CBD5E1',
+              navy: '#0F172A',
+              blue: '#0284C7',
+              sky: '#0EA5E9',
+              muted: '#64748B'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      user-select: none;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Professional Glass Cards */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #CBD5E1;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    }
+
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid #334155;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    /* Accent Sliders */
+    input[type=range] {
+      accent-color: #0ea5e9;
+    }
+
+    .hud-text {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body class="bg-bright-bg text-bright-navy dark:bg-space-bg dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200 overflow-x-hidden">
+
+  <!-- ==================== SINGLE HEADER BAR (PROFESSIONAL SLATE) ==================== -->
+  <header class="h-14 bg-[#0F172A] text-white flex items-center justify-between px-4 md:px-6 border-b border-slate-700 z-30 shrink-0 shadow-md">
+    <!-- Left Title & Branding -->
+    <div class="flex items-center gap-3">
+      <div class="bg-sky-500 w-8 h-8 rounded-lg flex items-center justify-center font-black italic text-white text-base shadow">
+        🚀
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base md:text-lg font-bold tracking-tight uppercase leading-none">
+            Rocket Propulsion & Variable Mass Lab
+          </h1>
+          <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full bg-sky-950 text-sky-400 border border-sky-800">
+            Tsiolkovsky Engine
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-0.5 font-medium hidden sm:block">
+          Variable Mass Dynamics & Altitude Simulation
+        </p>
+      </div>
+    </div>
+
+    <!-- Center: Environment Mode Toggle -->
+    <div class="hidden md:flex items-center bg-slate-800 rounded-full p-1 border border-slate-700">
+      <button id="envAtmoBtn" onclick="setEnvironment('atmospheric')" class="px-4 py-1 text-xs font-semibold bg-sky-600 rounded-full text-white shadow-sm transition-all flex items-center gap-1.5">
+        <i data-lucide="cloud-rain" class="w-3.5 h-3.5"></i> Atmospheric Launch
+      </button>
+      <button id="envSpaceBtn" onclick="setEnvironment('space')" class="px-4 py-1 text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Deep Space (Zero-G)
+      </button>
+    </div>
+
+    <!-- Right: Brand & Theme Toggle -->
+    <div class="flex items-center gap-4">
+      <div class="hidden lg:block text-right pr-4 border-r border-slate-700">
+        <div class="text-[9px] text-slate-400 uppercase tracking-widest leading-none mb-1">Powered by</div>
+        <div class="text-xs font-bold text-sky-400">UDVASH ACADEMIC</div>
+      </div>
+
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold text-xs flex items-center gap-2 transition-all shadow-sm">
+        <span id="themeIcon">🌙 Dark Space</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+    <!-- ==================== SIDEBAR CONTROLS (LEFT, 340px) ==================== -->
+    <aside class="w-full lg:w-[350px] bg-white dark:bg-[#161B26] border-r border-slate-200 dark:border-slate-800 flex flex-col p-4 overflow-y-auto space-y-5 shadow-sm z-20 shrink-0">
+      
+      <!-- PRESET SCENARIOS -->
+      <section>
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5 text-sky-600"></i> Preset Scenarios
+        </h3>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="loadPreset('earth')" class="text-[11px] font-bold py-2 px-3 border border-slate-200 dark:border-slate-700 rounded hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors bg-slate-50 dark:bg-slate-800/50 text-left">
+            <div class="text-slate-800 dark:text-gray-200">Earth Std.</div>
+            <div class="text-[10px] font-normal text-slate-500 dark:text-gray-400 font-mono">g=9.81m/s²</div>
+          </button>
+          <button onclick="loadPreset('zero_g')" class="text-[11px] font-bold py-2 px-3 border border-slate-200 dark:border-slate-700 rounded hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-left bg-slate-50/50 dark:bg-slate-800/30">
+            <div class="text-slate-800 dark:text-gray-200">Deep Space</div>
+            <div class="text-[10px] font-normal text-slate-500 dark:text-gray-400 font-mono">Zero-G, High v_e</div>
+          </button>
+          <button onclick="loadPreset('heavy')" class="text-[11px] font-bold py-2 px-3 border border-slate-200 dark:border-slate-700 rounded hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-left bg-slate-50/50 dark:bg-slate-800/30">
+            <div class="text-slate-800 dark:text-gray-200">Heavy Lift</div>
+            <div class="text-[10px] font-normal text-slate-500 dark:text-gray-400 font-mono">m_dry=900kg</div>
+          </button>
+          <button onclick="loadPreset('critical')" class="text-[11px] font-bold py-2 px-3 border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-950/30 rounded text-left">
+            <div>Crit. Threshold</div>
+            <div class="text-[10px] font-normal opacity-80 font-mono">F_thrust ≈ Weight</div>
+          </button>
+        </div>
+      </section>
+
+      <!-- INITIAL PARAMETERS SLIDERS -->
+      <section class="space-y-3.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="sliders" class="w-3.5 h-3.5 text-sky-600"></i> Initial Parameters
+          </h3>
+          <button onclick="resetParameters()" class="text-[11px] font-semibold text-sky-600 hover:underline">Reset</button>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Exhaust Velocity v_e -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <div>
+                <span class="font-medium text-slate-700 dark:text-gray-300">Exhaust Velocity (v<sub>e</sub>)</span>
+                <p class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold mt-0.5">With respect to rocket frame</p>
+              </div>
+              <span class="text-sky-600 dark:text-sky-400 font-bold font-mono" id="veVal">2,500 m/s</span>
+            </div>
+            <input type="range" id="veInput" min="500" max="4500" step="50" value="2500" oninput="updateSliders()" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-600" />
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>500 m/s</span><span>4,500 m/s</span>
+            </div>
+          </div>
+
+          <!-- Burn Rate dm/dt -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium text-slate-700 dark:text-gray-300">Burn Rate (dm/dt)</span>
+              <span class="text-sky-600 dark:text-sky-400 font-bold font-mono" id="dmdtVal">120 kg/s</span>
+            </div>
+            <input type="range" id="dmdtInput" min="5" max="500" step="5" value="120" oninput="updateSliders()" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-600" />
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>5 kg/s</span><span>500 kg/s</span>
+            </div>
+          </div>
+
+          <!-- Fuel Mass m_fuel -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium text-slate-700 dark:text-gray-300">Fuel Mass (m<sub>fuel</sub>)</span>
+              <span class="text-sky-600 dark:text-sky-400 font-bold font-mono" id="mfuelVal">2,500 kg</span>
+            </div>
+            <input type="range" id="mfuelInput" min="100" max="5000" step="50" value="2500" oninput="updateSliders()" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-600" />
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>100 kg</span><span>5,000 kg</span>
+            </div>
+          </div>
+
+          <!-- Dry Mass m_dry -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium text-slate-700 dark:text-gray-300">Dry Mass (m<sub>dry</sub>)</span>
+              <span class="text-sky-600 dark:text-sky-400 font-bold font-mono" id="mdryVal">300 kg</span>
+            </div>
+            <input type="range" id="mdryInput" min="50" max="1000" step="25" value="300" oninput="updateSliders()" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-600" />
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>50 kg</span><span>1,000 kg</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ENVIRONMENT & DISPLAY OPTIONS -->
+      <section class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Environment & Options</h3>
+        
+        <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-slate-700 dark:text-gray-300">Gravitational Field (g)</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1">
+            <button onclick="setGravity(9.81, 'Earth')" id="gEarthBtn" class="py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-sky-500 text-sky-600 dark:text-sky-400 shadow-sm">
+              Earth
+            </button>
+            <button onclick="setGravity(0, 'Zero-G')" id="gZeroBtn" class="py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-gray-300">
+              Zero-G
+            </button>
+            <button onclick="setGravity(1.62, 'Moon')" id="gMoonBtn" class="py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-gray-300">
+              Moon
+            </button>
+            <button onclick="setGravity(3.71, 'Mars')" id="gMarsBtn" class="py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-gray-300">
+              Mars
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
+            <input type="checkbox" id="chkVectors" checked onchange="drawFrame()" class="rounded text-sky-600 focus:ring-0" />
+            Show Thrust & Weight Vectors
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
+            <input type="checkbox" id="chkGraphs" checked onchange="drawFrame()" class="rounded text-sky-600 focus:ring-0" />
+            v-t Graph Overlay
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
+            <input type="checkbox" id="chkSmoke" checked class="rounded text-sky-600 focus:ring-0" />
+            Particle Smoke Trails
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
+            <input type="checkbox" id="chkSound" class="rounded text-sky-600 focus:ring-0" />
+            Audio Engine Effects
+          </label>
+        </div>
+      </section>
+
+      <!-- LAUNCH EXECUTION CONTROLS -->
+      <section class="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="grid grid-cols-3 gap-2">
+          <button id="launchBtn" onclick="toggleLaunch()" class="col-span-2 py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i> <span id="launchBtnText">LAUNCH ROCKET</span>
+          </button>
+          <button onclick="resetSimulation()" class="py-2 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-200 font-bold text-xs flex items-center justify-center gap-1 transition-all">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-1">
+          <span class="text-slate-500 font-medium">Speed:</span>
+          <div class="flex gap-1">
+            <button onclick="setSimSpeed(0.5)" id="spd05" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-gray-300">0.5x</button>
+            <button onclick="setSimSpeed(1.0)" id="spd1" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-600 text-white">1.0x</button>
+            <button onclick="setSimSpeed(2.0)" id="spd2" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-gray-300">2.0x</button>
+            <button onclick="setSimSpeed(5.0)" id="spd5" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-gray-300">5.0x</button>
+          </div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ==================== CENTER CANVAS VIEWPORT ==================== -->
+    <main class="flex-1 relative flex flex-col bg-slate-900 overflow-hidden">
+      
+      <!-- INSUFFICIENT THRUST WARNING MODAL / ALERT -->
+      <div id="criticalAlert" class="hidden absolute top-6 left-1/2 -translate-x-1/2 z-30 max-w-md w-11/12 p-3 rounded-xl bg-red-600 text-white font-bold shadow-2xl border border-red-300 flex items-center gap-3 animate-bounce">
+        <div class="p-2 rounded-full bg-white/20 shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs">
+          <div class="font-black uppercase tracking-wide">Critical Lift-Off Warning</div>
+          <div id="alertText">Thrust is smaller than initial weight! Rocket cannot lift off!</div>
+        </div>
+      </div>
+
+      <!-- APOGEE ANNOUNCEMENT BADGE -->
+      <div id="apogeeBadge" class="hidden absolute top-6 left-6 z-20 px-3.5 py-1.5 rounded-xl bg-purple-600/90 text-white text-xs font-bold shadow-lg border border-purple-400 backdrop-blur flex items-center gap-2">
+        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+        <span>PEAK APOGEE REACHED: <strong id="apogeeText" class="font-mono">0.00 km</strong></span>
+      </div>
+
+      <!-- STRUCTURED DYNAMICS ENGINE OVERLAY (TOP-RIGHT) -->
+      <div class="absolute top-6 right-6 z-20 space-y-3 w-80 pointer-events-none">
+        
+        <!-- Card 1: Thrust Force Law -->
+        <div class="glass-card p-4 rounded-xl pointer-events-auto transition-all">
+          <div class="text-[10px] font-bold text-slate-400 dark:text-gray-400 uppercase mb-1 tracking-tight flex justify-between">
+            <span>Thrust Force Law</span>
+            <span class="font-mono opacity-70">F = v_e·(dm/dt)</span>
+          </div>
+          <div class="text-sm font-medium border-b border-slate-100 dark:border-slate-700 pb-2 mb-2 text-slate-800 dark:text-gray-200">
+            F<sub>thrust</sub> = v<sub>e</sub> · (dm/dt)
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="text-xs text-slate-500 dark:text-gray-400 italic">Calculated Thrust:</span>
+            <span class="text-lg font-bold text-sky-700 dark:text-sky-400 font-mono" id="dynThrust">300.00 kN</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Tsiolkovsky Equation -->
+        <div class="glass-card p-4 rounded-xl pointer-events-auto transition-all">
+          <div class="text-[10px] font-bold text-slate-400 dark:text-gray-400 uppercase mb-1 tracking-tight flex justify-between">
+            <span>Tsiolkovsky Equation</span>
+            <span class="font-mono opacity-70">v(t)</span>
+          </div>
+          <div class="text-sm font-medium border-b border-slate-100 dark:border-slate-700 pb-2 mb-2 text-slate-800 dark:text-gray-200">
+            v(t) = v<sub>e</sub> ln(m₀/m) - gt
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="text-xs text-slate-500 dark:text-gray-400 italic">Current Velocity:</span>
+            <span class="text-lg font-bold text-sky-700 dark:text-sky-400 font-mono" id="dynVel">0.00 m/s</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Instantaneous Accel -->
+        <div class="glass-card p-4 rounded-xl pointer-events-auto transition-all">
+          <div class="text-[10px] font-bold text-slate-400 dark:text-gray-400 uppercase mb-1 tracking-tight flex justify-between">
+            <span>Instantaneous Accel</span>
+            <span class="font-mono opacity-70">a(t)</span>
+          </div>
+          <div class="text-sm font-medium border-b border-slate-100 dark:border-slate-700 pb-2 mb-2 text-slate-800 dark:text-gray-200">
+            a(t) = (F<sub>thrust</sub> - mg) / m
+          </div>
+          <div class="flex justify-between items-baseline">
+            <span class="text-xs text-slate-500 dark:text-gray-400 italic">Current Accel:</span>
+            <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono" id="dynAccel">0.00 m/s²</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN SIMULATION CANVAS -->
+      <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+      <!-- BOTTOM TELEMETRY BAR OVERLAY -->
+      <div class="absolute bottom-6 left-6 right-6 z-20 glass-card p-3 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+        <div class="flex items-center gap-5">
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-bold">Time (t)</div>
+            <div class="text-sm font-extrabold text-slate-800 dark:text-white" id="telTime">0.00 s</div>
+          </div>
+          <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-bold">Total Mass (m)</div>
+            <div class="text-sm font-extrabold text-sky-600 dark:text-sky-400" id="telMass">2,800 kg</div>
+          </div>
+          <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-bold">Altitude (h)</div>
+            <div class="text-sm font-extrabold text-purple-600 dark:text-purple-300" id="telAlt">0.00 m</div>
+          </div>
+          <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+          <div>
+            <div class="text-[10px] text-slate-400 uppercase font-bold">Fuel Level</div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <div class="w-20 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div id="telFuelBar" class="h-full bg-sky-500 transition-all" style="width: 100%"></div>
+              </div>
+              <span class="text-xs font-bold text-slate-800 dark:text-gray-200" id="telFuelPct">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="statusBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+            READY FOR LAUNCH
+          </span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="h-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between text-[10px] font-medium text-slate-500 dark:text-gray-400 z-30 shrink-0">
+    <div class="flex gap-4">
+      <span>SESSION: PHYS_2026_UDVASH</span>
+      <span>ENGINE_STATUS: STABLE</span>
+      <span>DYNAMICS: TSIOLKOVSKY_V1.2</span>
+    </div>
+    <div>&copy; 2026 UDVASH ACADEMIC LABS - FOR EDUCATIONAL USE ONLY</div>
+  </footer>
+
+  <!-- ==================== JAVASCRIPT PHYSICS ENGINE ==================== -->
+  <script>
+    // --- APP STATE ---
+    let theme = 'bright'; // 'bright' | 'dark'
+    let environment = 'atmospheric'; // 'atmospheric' | 'space'
+    
+    // Physics Parameters
+    let ve = 2500;        // m/s
+    let dmdt = 120;       // kg/s
+    let m_fuel = 2500;    // kg
+    let m_dry = 300;      // kg
+    let g = 9.81;         // m/s2
+    let gName = 'Earth';
+
+    // Simulation Dynamic Variables
+    let isRunning = false;
+    let simTime = 0;       // s
+    let currentMass = 2800;// kg
+    let velocity = 0;      // m/s
+    let altitude = 0;      // m
+    let acceleration = 0;  // m/s2
+    let peakApogee = 0;    // m
+    let isBurnout = false;
+    let simSpeed = 1.0;
+    
+    // Smoke Particle Engine
+    let particles = [];
+    
+    // Background Clouds Engine
+    let clouds = [];
+
+    function initClouds() {
+      clouds = [];
+      const width = canvas ? (canvas.width || 800) : 800;
+      const height = canvas ? (canvas.height || 600) : 600;
+      for (let i = 0; i < 12; i++) {
+        clouds.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 32 + 22,
+          opacity: Math.random() * 0.35 + 0.15
+        });
+      }
+    }
+    
+    // History Data for Graphing
+    let historyV = [];
+    let historyH = [];
+    let historyA = [];
+    let historyM = [];
+
+    // Canvas setup
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    let engineOsc = null;
+    let engineGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        engineGain = audioCtx.createGain();
+        engineGain.gain.value = 0;
+        
+        // Brown noise / deep oscillator simulation
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          output[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = output[i];
+          output[i] *= 3.5;
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        noise.connect(engineGain);
+        engineGain.connect(audioCtx.destination);
+        noise.start();
+      }
+    }
+
+    function updateAudio(active) {
+      if (!document.getElementById('chkSound').checked) {
+        if (engineGain) engineGain.gain.value = 0;
+        return;
+      }
+      initAudio();
+      if (active && engineGain) {
+        engineGain.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.1);
+      } else if (engineGain) {
+        engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      updateSliders();
+      resetSimulation();
+      requestAnimationFrame(simLoop);
+    });
+
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+      if (clouds.length === 0) initClouds();
+      drawFrame();
+    }
+
+    // --- THEME & ENVIRONMENT TOGGLES ---
+    function toggleTheme() {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        document.getElementById('themeIcon').innerHTML = '🌙 Dark Space';
+        theme = 'bright';
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        document.getElementById('themeIcon').innerHTML = '☀ Clean Bright';
+        theme = 'dark';
+      }
+      drawFrame();
+    }
+
+    function setEnvironment(mode) {
+      environment = mode;
+      const atmoBtn = document.getElementById('envAtmoBtn');
+      const spaceBtn = document.getElementById('envSpaceBtn');
+      
+      if (mode === 'atmospheric') {
+        atmoBtn.className = "px-4 py-1 text-xs font-semibold bg-sky-600 rounded-full text-white shadow-sm transition-all flex items-center gap-1.5";
+        spaceBtn.className = "px-4 py-1 text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5";
+        if (g === 0) setGravity(9.81, 'Earth');
+      } else {
+        spaceBtn.className = "px-4 py-1 text-xs font-semibold bg-sky-600 rounded-full text-white shadow-sm transition-all flex items-center gap-1.5";
+        atmoBtn.className = "px-4 py-1 text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5";
+        setGravity(0, 'Zero-G');
+      }
+      drawFrame();
+    }
+
+    // --- SLIDER & PRESET HANDLERS ---
+    function updateSliders() {
+      ve = parseFloat(document.getElementById('veInput').value);
+      dmdt = parseFloat(document.getElementById('dmdtInput').value);
+      m_fuel = parseFloat(document.getElementById('mfuelInput').value);
+      m_dry = parseFloat(document.getElementById('mdryInput').value);
+
+      document.getElementById('veVal').innerText = `${ve.toLocaleString()} m/s`;
+      document.getElementById('dmdtVal').innerText = `${dmdt} kg/s`;
+      document.getElementById('mfuelVal').innerText = `${m_fuel.toLocaleString()} kg`;
+      document.getElementById('mdryVal').innerText = `${m_dry} kg`;
+
+      if (!isRunning) {
+        resetSimulation();
+      }
+      calculateExamInspector();
+    }
+
+    function setGravity(val, name) {
+      g = val;
+      gName = name;
+      ['gEarthBtn', 'gZeroBtn', 'gMoonBtn', 'gMarsBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = "py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-gray-300";
+      });
+
+      if (val === 9.81) document.getElementById('gEarthBtn').className = "py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-sky-500 text-sky-600 dark:text-sky-400 shadow-sm";
+      else if (val === 0) document.getElementById('gZeroBtn').className = "py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-sky-500 text-sky-600 dark:text-sky-400 shadow-sm";
+      else if (val === 1.62) document.getElementById('gMoonBtn').className = "py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-sky-500 text-sky-600 dark:text-sky-400 shadow-sm";
+      else if (val === 3.71) document.getElementById('gMarsBtn').className = "py-1 text-[10px] font-bold rounded bg-white dark:bg-slate-700 border border-sky-500 text-sky-600 dark:text-sky-400 shadow-sm";
+
+      if (!isRunning) resetSimulation();
+      calculateExamInspector();
+    }
+
+    function setSimSpeed(spd) {
+      simSpeed = spd;
+      ['spd05', 'spd1', 'spd2', 'spd5'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-gray-300";
+      });
+      if (spd === 0.5) document.getElementById('spd05').className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-600 text-white";
+      if (spd === 1.0) document.getElementById('spd1').className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-600 text-white";
+      if (spd === 2.0) document.getElementById('spd2').className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-600 text-white";
+      if (spd === 5.0) document.getElementById('spd5').className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-600 text-white";
+    }
+
+    function loadPreset(key) {
+      if (key === 'earth') {
+        document.getElementById('veInput').value = 2500;
+        document.getElementById('dmdtInput').value = 120;
+        document.getElementById('mfuelInput').value = 2500;
+        document.getElementById('mdryInput').value = 300;
+        setGravity(9.81, 'Earth');
+        setEnvironment('atmospheric');
+      } else if (key === 'zero_g') {
+        document.getElementById('veInput').value = 3500;
+        document.getElementById('dmdtInput').value = 100;
+        document.getElementById('mfuelInput').value = 3000;
+        document.getElementById('mdryInput').value = 400;
+        setGravity(0, 'Zero-G');
+        setEnvironment('space');
+      } else if (key === 'heavy') {
+        document.getElementById('veInput').value = 2200;
+        document.getElementById('dmdtInput').value = 350;
+        document.getElementById('mfuelInput').value = 4500;
+        document.getElementById('mdryInput').value = 900;
+        setGravity(9.81, 'Earth');
+        setEnvironment('atmospheric');
+      } else if (key === 'critical') {
+        document.getElementById('veInput').value = 1000;
+        document.getElementById('dmdtInput').value = 28;
+        document.getElementById('mfuelInput').value = 2500;
+        document.getElementById('mdryInput').value = 500;
+        setGravity(9.81, 'Earth');
+        setEnvironment('atmospheric');
+      }
+      updateSliders();
+    }
+
+    function resetParameters() {
+      loadPreset('earth');
+    }
+
+    // --- PHYSICS CALCULATIONS & EXAM INSPECTOR ---
+    function calculateExamInspector() {
+      const m0 = m_dry + m_fuel;
+      const F_thrust = ve * dmdt;
+      const W0 = m0 * g;
+      const a0 = (F_thrust / m0) - g;
+      const t_burn = m_fuel / dmdt;
+      const v_burn = (ve * Math.log(m0 / m_dry)) - (g * t_burn);
+      
+      const h_burn = ve * (t_burn - (m_dry / dmdt) * Math.log(m0 / m_dry)) - 0.5 * g * t_burn * t_burn;
+      
+      let h_max = h_burn;
+      if (g > 0 && v_burn > 0) {
+        h_max += (v_burn * v_burn) / (2 * g);
+      } else if (g === 0) {
+        h_max = Infinity;
+      }
+
+      if (document.getElementById('calcThrust')) {
+        document.getElementById('calcThrust').innerText = `${F_thrust.toLocaleString()} N`;
+        document.getElementById('calcWeight').innerText = `${W0.toFixed(0).toLocaleString()} N`;
+        document.getElementById('calcA0').innerText = `${a0.toFixed(2)} m/s²`;
+        document.getElementById('calcTburn').innerText = `${t_burn.toFixed(2)} s`;
+        document.getElementById('calcVburn').innerText = `${Math.round(v_burn).toLocaleString()} m/s`;
+        document.getElementById('calcHmax').innerText = isFinite(h_max) ? `${(h_max / 1000).toFixed(2)} km` : '∞ (Deep Space)';
+      }
+
+      const alertElem = document.getElementById('criticalAlert');
+      if (F_thrust <= W0 && g > 0) {
+        document.getElementById('alertText').innerText = `CRITICAL ALERT: Thrust (${F_thrust.toLocaleString()} N) <= Initial Weight (${W0.toFixed(0).toLocaleString()} N)! Rocket cannot lift off!`;
+        alertElem.classList.remove('hidden');
+      } else {
+        alertElem.classList.add('hidden');
+      }
+    }
+
+    // --- SIMULATION EXECUTION LOOP ---
+    function resetSimulation() {
+      isRunning = false;
+      simTime = 0;
+      currentMass = m_dry + m_fuel;
+      velocity = 0;
+      altitude = 0;
+      acceleration = 0;
+      peakApogee = 0;
+      isBurnout = false;
+      particles = [];
+      historyV = [];
+      historyH = [];
+      historyA = [];
+      historyM = [];
+
+      document.getElementById('launchBtnText').innerText = 'LAUNCH ROCKET';
+      document.getElementById('statusBadge').innerText = 'READY FOR LAUNCH';
+      document.getElementById('statusBadge').className = "px-3 py-1 rounded-full text-[11px] font-bold bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
+      document.getElementById('apogeeBadge').classList.add('hidden');
+      updateAudio(false);
+      calculateExamInspector();
+      drawFrame();
+    }
+
+    function toggleLaunch() {
+      const F_thrust = ve * dmdt;
+      const W0 = (m_dry + m_fuel) * g;
+      
+      if (!isRunning) {
+        if (F_thrust <= W0 && g > 0) {
+          alert('Cannot Launch: Upward Thrust Force is less than or equal to Initial Weight!');
+          return;
+        }
+        isRunning = true;
+        document.getElementById('launchBtnText').innerText = 'PAUSE SIMULATION';
+        document.getElementById('statusBadge').innerText = 'BURNING FUEL (ACTIVE THRUST)';
+        document.getElementById('statusBadge').className = "px-3 py-1 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 animate-pulse";
+        updateAudio(true);
+      } else {
+        isRunning = false;
+        document.getElementById('launchBtnText').innerText = 'RESUME SIMULATION';
+        document.getElementById('statusBadge').innerText = 'SIMULATION PAUSED';
+        document.getElementById('statusBadge').className = "px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+        updateAudio(false);
+      }
+    }
+
+    let lastTimestamp = performance.now();
+
+    function simLoop(now) {
+      const dtReal = (now - lastTimestamp) / 1000;
+      lastTimestamp = now;
+
+      if (isRunning) {
+        const dt = Math.min(dtReal, 0.05) * simSpeed;
+        simTime += dt;
+
+        // Mass Decay
+        if (currentMass > m_dry) {
+          currentMass = Math.max(m_dry, currentMass - dmdt * dt);
+          isBurnout = false;
+        } else {
+          currentMass = m_dry;
+          if (!isBurnout) {
+            isBurnout = true;
+            document.getElementById('statusBadge').innerText = 'BURNOUT PHASE (COASTING)';
+            document.getElementById('statusBadge').className = "px-3 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300";
+            updateAudio(false);
+          }
+        }
+
+        // Thrust Force
+        const thrust = (!isBurnout && currentMass > m_dry) ? ve * dmdt : 0;
+        const weight = currentMass * g;
+
+        // Acceleration
+        acceleration = (thrust - weight) / currentMass;
+
+        // Velocity & Altitude Integration
+        velocity += acceleration * dt;
+        altitude += velocity * dt + 0.5 * acceleration * dt * dt;
+
+        if (altitude < 0) {
+          altitude = 0;
+          velocity = 0;
+          acceleration = 0;
+          isRunning = false;
+          document.getElementById('launchBtnText').innerText = 'RE-LAUNCH';
+          document.getElementById('statusBadge').innerText = 'TOUCHDOWN / GROUNDED';
+          document.getElementById('statusBadge').className = "px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+          updateAudio(false);
+        }
+
+        if (altitude > peakApogee) {
+          peakApogee = altitude;
+          document.getElementById('apogeeText').innerText = `${(peakApogee / 1000).toFixed(2)} km`;
+          if (isBurnout && velocity <= 0) {
+            document.getElementById('apogeeBadge').classList.remove('hidden');
+          }
+        }
+
+        // Smoke Particles Generation
+        if (!isBurnout && document.getElementById('chkSmoke').checked) {
+          const spawnCount = Math.ceil((dmdt / 50) * simSpeed);
+          for (let i = 0; i < spawnCount; i++) {
+            particles.push({
+              x: (Math.random() - 0.5) * 12,
+              y: 0,
+              vx: (Math.random() - 0.5) * 20,
+              vy: Math.random() * 50 + 30 + (velocity * 0.05),
+              size: Math.random() * 8 + 4,
+              life: 1.0,
+              decay: Math.random() * 0.8 + 0.4
+            });
+          }
+        }
+
+        // Update Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.size += dt * 10;
+          p.life -= p.decay * dt;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Move Background Clouds Downward (creating strong relative ascent effect)
+        if (velocity > 0) {
+          const cloudSpeed = Math.max(20, velocity * 0.45);
+          clouds.forEach(c => {
+            c.y += cloudSpeed * dt;
+            if (c.y > canvas.height + 80) {
+              c.y = -80;
+              c.x = Math.random() * canvas.width;
+            }
+          });
+        }
+
+        // Save History
+        if (historyV.length > 300) {
+          historyV.shift(); historyH.shift(); historyA.shift(); historyM.shift();
+        }
+        historyV.push(velocity);
+        historyH.push(altitude);
+        historyA.push(acceleration);
+        historyM.push(currentMass);
+      }
+
+      // Update UI Telemetry & Dynamics Overlay
+      updateTelemetryUI();
+      drawFrame();
+
+      requestAnimationFrame(simLoop);
+    }
+
+    function updateTelemetryUI() {
+      document.getElementById('telTime').innerText = `${simTime.toFixed(2)} s`;
+      document.getElementById('telMass').innerText = `${Math.round(currentMass).toLocaleString()} kg`;
+      document.getElementById('telAlt').innerText = altitude > 10000 ? `${(altitude / 1000).toFixed(2)} km` : `${altitude.toFixed(1)} m`;
+      
+      const fuelPct = Math.max(0, ((currentMass - m_dry) / m_fuel) * 100);
+      document.getElementById('telFuelPct').innerText = `${Math.round(fuelPct)}%`;
+      document.getElementById('telFuelBar').style.width = `${fuelPct}%`;
+
+      // Dynamics Overlay
+      const thrust = (!isBurnout && currentMass > m_dry) ? ve * dmdt : 0;
+      document.getElementById('dynThrust').innerText = `${(thrust / 1000).toFixed(2)} kN`;
+      document.getElementById('dynVel').innerText = `${velocity.toFixed(1)} m/s`;
+      document.getElementById('dynAccel').innerText = `${acceleration.toFixed(2)} m/s²`;
+    }
+
+    // --- CANVAS RENDERING ENGINE ---
+    function drawFrame() {
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const isDark = document.documentElement.classList.contains('dark');
+
+      // 1. Sky Background / Deep Space Gradient
+      if (environment === 'space') {
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+        bgGrad.addColorStop(0, '#05070A');
+        bgGrad.addColorStop(1, '#0F172A');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw background stars scrolling downward with altitude
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.85)';
+        for (let i = 0; i < 60; i++) {
+          const sx = (i * 137.5) % width;
+          const sy = ((i * 293.3) + altitude * 1.2) % height;
+          ctx.fillRect(sx, sy, (i % 3 === 0 ? 2 : 1), (i % 3 === 0 ? 2 : 1));
+        }
+      } else {
+        // Atmospheric gradient based on altitude
+        const skyAltRatio = Math.min(1.0, altitude / 100000);
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+
+        if (isDark) {
+          bgGrad.addColorStop(0, skyAltRatio > 0.5 ? '#030712' : '#0F172A');
+          bgGrad.addColorStop(1, skyAltRatio > 0.5 ? '#0F172A' : '#1E293B');
+        } else {
+          bgGrad.addColorStop(0, skyAltRatio > 0.5 ? '#0F172A' : '#38BDF8');
+          bgGrad.addColorStop(1, skyAltRatio > 0.5 ? '#1E293B' : '#BAE6FD');
+        }
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      // Atmospheric Clouds & Motion Effects
+      if (environment !== 'space' && altitude < 90000) {
+        const cloudFade = Math.max(0, 1 - altitude / 80000);
+        clouds.forEach(c => {
+          ctx.fillStyle = isDark ? `rgba(255, 255, 255, ${c.opacity * cloudFade * 0.25})` : `rgba(255, 255, 255, ${c.opacity * cloudFade * 0.75})`;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+          ctx.arc(c.x + c.r * 0.5, c.y - c.r * 0.2, c.r * 0.7, 0, Math.PI * 2);
+          ctx.arc(c.x - c.r * 0.5, c.y - c.r * 0.2, c.r * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // High-Speed Vertical Airflow / Speed Streaks (Rushing downward)
+      if (velocity > 15) {
+        const streakCount = Math.min(30, Math.floor(velocity / 40) + 10);
+        const streakLen = Math.min(120, velocity * 0.15);
+        ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(2, 132, 199, 0.35)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < streakCount; i++) {
+          const sx = (i * 97 + simTime * 40) % width;
+          const sy = ((i * 131) + (altitude * 2)) % height;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx, sy + streakLen);
+          ctx.stroke();
+        }
+      }
+
+      // Parallax Motion Grid Lines (gives impression of sky/background moving down as rocket ascends)
+      if (environment !== 'space' && velocity > 0) {
+        const lineSpacing = 100;
+        const lineOffset = (altitude * 1.5) % lineSpacing;
+        ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(2, 132, 199, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 6]);
+        for (let y = -lineSpacing + lineOffset; y < height + lineSpacing; y += lineSpacing) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 2. Camera View & Position Calculation
+      // Keeps the rocket safely inside the viewport frame at all times (max height ~32% from top)
+      const baseGroundY = height - 160;
+      const targetFlyY = Math.max(120, height * 0.32);
+      const climbProgress = 1 - Math.exp(-altitude / 350);
+      const rocketScreenY = baseGroundY - climbProgress * (baseGroundY - targetFlyY);
+
+      // Ground position scrolls downward past canvas bottom as altitude increases
+      const screenGroundY = rocketScreenY + (altitude * 1.5);
+
+      // 3. Draw Launchpad & Ground
+      if (screenGroundY < height + 150) {
+        ctx.fillStyle = isDark ? '#1E293B' : '#64748B';
+        ctx.fillRect(0, screenGroundY, width, height - screenGroundY + 150);
+
+        ctx.fillStyle = isDark ? '#334155' : '#94A3B8';
+        ctx.fillRect(width / 2 - 80, screenGroundY - 10, 160, 10);
+      }
+
+      // Dynamic Scrolling Altitude Ladder (HUD Ruler)
+      const rulerX = 20;
+      const altInterval = altitude > 20000 ? 5000 : (altitude > 5000 ? 1000 : 200);
+      const startAltStep = Math.floor((altitude - 2000) / altInterval) * altInterval;
+      const endAltStep = startAltStep + (15 * altInterval);
+
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.35)';
+      ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.75)' : 'rgba(15, 23, 42, 0.8)';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'left';
+
+      for (let a = Math.max(0, startAltStep); a <= endAltStep; a += altInterval) {
+        const altDiff = a - altitude;
+        const tickY = rocketScreenY - (altDiff * 0.18);
+        
+        if (tickY >= 25 && tickY <= height - 45) {
+          ctx.beginPath();
+          ctx.moveTo(rulerX, tickY);
+          ctx.lineTo(rulerX + 10, tickY);
+          ctx.stroke();
+
+          const label = a >= 1000 ? `${(a / 1000).toFixed(a % 1000 === 0 ? 0 : 1)} km` : `${a} m`;
+          ctx.fillText(label, rulerX + 14, tickY + 3);
+        }
+      }
+      ctx.restore();
+
+      // 4. Render Particle Smoke Trails
+      ctx.save();
+      ctx.translate(width / 2, rocketScreenY + 30);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 180, 80, ${p.life * 0.6})`;
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // 5. Render Animated Exhaust Flame (Active Thrust)
+      if (isRunning && !isBurnout && currentMass > m_dry) {
+        ctx.save();
+        ctx.translate(width / 2, rocketScreenY + 30);
+        
+        const flameScale = (dmdt / 150) * (0.8 + Math.random() * 0.4);
+        
+        // Outer Flame (Sky / Orange)
+        const outerGrad = ctx.createLinearGradient(0, 0, 0, 80 * flameScale);
+        outerGrad.addColorStop(0, '#0ea5e9');
+        outerGrad.addColorStop(0.3, '#f97316');
+        outerGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+        ctx.beginPath();
+        ctx.moveTo(-12, 0);
+        ctx.quadraticCurveTo(-18, 40 * flameScale, 0, 80 * flameScale);
+        ctx.quadraticCurveTo(18, 40 * flameScale, 12, 0);
+        ctx.closePath();
+        ctx.fillStyle = outerGrad;
+        ctx.fill();
+
+        // Inner Core Flame (White Hot)
+        const innerGrad = ctx.createLinearGradient(0, 0, 0, 45 * flameScale);
+        innerGrad.addColorStop(0, '#FFFFFF');
+        innerGrad.addColorStop(1, 'rgba(14, 165, 233, 0)');
+
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.quadraticCurveTo(-8, 20 * flameScale, 0, 45 * flameScale);
+        ctx.quadraticCurveTo(8, 20 * flameScale, 6, 0);
+        ctx.closePath();
+        ctx.fillStyle = innerGrad;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // 6. Draw Rocket Body with Transparent Fuel Tank Gauge
+      ctx.save();
+      ctx.translate(width / 2, rocketScreenY);
+
+      const rw = 28;
+      const rh = 65;
+
+      // Nose Cone
+      ctx.beginPath();
+      ctx.moveTo(0, -rh / 2 - 18);
+      ctx.lineTo(-rw / 2, -rh / 2);
+      ctx.lineTo(rw / 2, -rh / 2);
+      ctx.closePath();
+      ctx.fillStyle = isDark ? '#38BDF8' : '#0284C7';
+      ctx.fill();
+
+      // Body Cylinder Frame
+      ctx.fillStyle = isDark ? '#1E293B' : '#CBD5E1';
+      ctx.strokeStyle = isDark ? '#38BDF8' : '#0284C7';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-rw / 2, -rh / 2, rw, rh);
+      ctx.strokeRect(-rw / 2, -rh / 2, rw, rh);
+
+      // Transparent Fuel Tank Liquid Gauge Inside Rocket Body
+      const fuelRatio = Math.max(0, (currentMass - m_dry) / m_fuel);
+      const tankH = rh * 0.6;
+      const liquidH = tankH * fuelRatio;
+
+      ctx.fillStyle = 'rgba(14, 165, 233, 0.2)';
+      ctx.fillRect(-rw / 2 + 4, -rh / 2 + 10, rw - 8, tankH);
+
+      ctx.fillStyle = isDark ? 'rgba(56, 189, 248, 0.85)' : 'rgba(2, 132, 199, 0.85)';
+      ctx.fillRect(-rw / 2 + 4, -rh / 2 + 10 + (tankH - liquidH), rw - 8, liquidH);
+
+      // Fins
+      ctx.beginPath();
+      ctx.moveTo(-rw / 2, rh / 4);
+      ctx.lineTo(-rw / 2 - 12, rh / 2 + 5);
+      ctx.lineTo(-rw / 2, rh / 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(rw / 2, rh / 4);
+      ctx.lineTo(rw / 2 + 12, rh / 2 + 5);
+      ctx.lineTo(rw / 2, rh / 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+
+      // Nozzle
+      ctx.fillStyle = '#64748B';
+      ctx.beginPath();
+      ctx.moveTo(-8, rh / 2);
+      ctx.lineTo(-12, rh / 2 + 10);
+      ctx.lineTo(12, rh / 2 + 10);
+      ctx.lineTo(8, rh / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+
+      // 7. Draw Force Vectors (Thrust & Weight)
+      if (document.getElementById('chkVectors').checked) {
+        const thrust = (!isBurnout && currentMass > m_dry) ? ve * dmdt : 0;
+        const weight = currentMass * g;
+
+        ctx.save();
+        ctx.translate(width / 2, rocketScreenY);
+
+        // Upward Thrust Vector (Sky Blue)
+        if (thrust > 0) {
+          const vecThrustLen = Math.min(120, Math.max(20, (thrust / 100000) * 30));
+          ctx.strokeStyle = '#0ea5e9';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, -rh / 2 - 18);
+          ctx.lineTo(0, -rh / 2 - 18 - vecThrustLen);
+          ctx.stroke();
+
+          // Arrowhead
+          ctx.fillStyle = '#0ea5e9';
+          ctx.beginPath();
+          ctx.moveTo(-6, -rh / 2 - 18 - vecThrustLen);
+          ctx.lineTo(6, -rh / 2 - 18 - vecThrustLen);
+          ctx.lineTo(0, -rh / 2 - 28 - vecThrustLen);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.font = 'bold 11px JetBrains Mono';
+          ctx.fillStyle = '#0ea5e9';
+          ctx.fillText(`F_thrust = ${(thrust / 1000).toFixed(1)} kN`, 12, -rh / 2 - 18 - vecThrustLen / 2);
+        }
+
+        // Downward Weight Vector (Amber/Red)
+        if (weight > 0) {
+          const vecWeightLen = Math.min(100, Math.max(15, (weight / 100000) * 30));
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, rh / 2 + 10);
+          ctx.lineTo(0, rh / 2 + 10 + vecWeightLen);
+          ctx.stroke();
+
+          // Arrowhead
+          ctx.fillStyle = '#d97706';
+          ctx.beginPath();
+          ctx.moveTo(-6, rh / 2 + 10 + vecWeightLen);
+          ctx.lineTo(6, rh / 2 + 10 + vecWeightLen);
+          ctx.lineTo(0, rh / 2 + 20 + vecWeightLen);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.font = 'bold 11px JetBrains Mono';
+          ctx.fillStyle = '#d97706';
+          ctx.fillText(`W = ${(weight / 1000).toFixed(1)} kN`, 12, rh / 2 + 10 + vecWeightLen / 2);
+        }
+
+        ctx.restore();
+      }
+
+      // 8. Real-time Graph Overlays (v-t and h-t Tracing)
+      if (document.getElementById('chkGraphs').checked && historyV.length > 2) {
+        ctx.save();
+        const gw = 220;
+        const gh = 100;
+        const gx = 20;
+        const gy = 20;
+
+        ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = isDark ? '#334155' : '#CBD5E1';
+        ctx.lineWidth = 1;
+        ctx.fillRect(gx, gy, gw, gh);
+        ctx.strokeRect(gx, gy, gw, gh);
+
+        ctx.font = 'bold 9px JetBrains Mono';
+        ctx.fillStyle = isDark ? '#38BDF8' : '#0284C7';
+        ctx.fillText('Real-time Velocity Graph (v-t)', gx + 8, gy + 14);
+
+        // Plot Velocity curve
+        const maxV = Math.max(100, ...historyV);
+        ctx.beginPath();
+        ctx.strokeStyle = '#0ea5e9';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < historyV.length; i++) {
+          const px = gx + (i / 300) * gw;
+          const py = gy + gh - (historyV[i] / maxV) * (gh - 25) - 5;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+  </script>
+</body>
+</html>
